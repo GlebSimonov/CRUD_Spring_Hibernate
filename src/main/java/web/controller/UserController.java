@@ -1,5 +1,6 @@
 package web.controller;
 
+import org.springframework.validation.BindingResult;
 import web.model.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,55 +11,53 @@ import javax.validation.Valid;
 import java.util.List;
 
 @Controller
-@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
+    private static final String GOHOME = "redirect:/";
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @GetMapping("/")
+    @RequestMapping(value = "/", method = RequestMethod.GET)
     public String getAllUsers(Model model) {
         List<User> users = userService.getAllUsers();
         model.addAttribute("users", users);
         return "users/index";
     }
-
-    @GetMapping("/{id}")
-    public String getUser(@PathVariable("id") Integer id, Model model) {
+    @RequestMapping(value = "{id}", method = RequestMethod.GET)
+    public String getUser(@PathVariable("id") int id, Model model) {
         model.addAttribute("user", userService.getById(id));
         return "users/show";
     }
-
-    @GetMapping("/new")
+    @RequestMapping(value = "/new", method = RequestMethod.GET)
     public String getFormForCreate(@ModelAttribute("user") User user) {
         return "users/new";
     }
-
-    @PostMapping()
-    public String createUser(@ModelAttribute("user") @Valid User user) {
+    @RequestMapping(value = "", method = RequestMethod.POST)
+    public String createUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors())
+            return "users/new";
         userService.addUser(user);
-        return "redirect:/users/";
+        return GOHOME;
     }
-
-    @GetMapping("/{id}/edit")
-    public String getFormForUpdate(@PathVariable("id") Integer id, Model model) {
+    @RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+    public String getFormForUpdate(@PathVariable("id") int id, Model model) {
         model.addAttribute("user", userService.getById(id));
         return "users/edit";
     }
-
-    @PutMapping("/{id}")
-    public String updateUser(@ModelAttribute("user") @Valid User user, @PathVariable("id") Integer id) {
+    @RequestMapping(value = "/{id}", method = RequestMethod.POST)
+    public String updateUser(@ModelAttribute("user") @Valid User user,BindingResult bindingResult, @PathVariable("id") int id) {
+        if (bindingResult.hasErrors())
+            return "users/edit";
         userService.editUser(user, id);
-        return "redirect:/users/";
+        return GOHOME;
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable("id") Integer id) {
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public String deleteUser(@PathVariable("id") int id) {
         userService.deleteUser(id);
-        return "redirect:/users/";
+        return GOHOME;
     }
 }
 
